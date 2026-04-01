@@ -1,13 +1,10 @@
 import type {Request, Response} from 'express'
-import {signupPayloadModel} from './models'
-import {singninPayloadModel} from './models'
+import {signupPayloadModel, singninPayloadModel} from './models'
 import {eq} from 'drizzle-orm'
 import { db } from '../../db'
 import { userTable } from '../../db/schema'
 import {createHmac, randomBytes} from 'node:crypto'
-import {sign} from 'jsonwebtoken'
-import {createUserToken} from './utils/token'
-
+import {createUserToken, type UsertokenPayload} from './utils/token'
 class AuthenticationController {
     public async handelSignup (req: Request,  res: Response) {
         const validation = await signupPayloadModel.safeParseAsync(req.body)
@@ -62,7 +59,18 @@ class AuthenticationController {
     const token = createUserToken({id: userSelect.id})
     return res.status(200).json({message: 'user has been signed in', data: {token}})
     }
+
+    public async handleme(req: Request, res: Response){
+        //@ts-ignore
+        const {id} = req.user! as UsertokenPayload
+
+        const [userResult] = await db.select().from(userTable).where(eq(userTable.id, id))
+
+        return res.json({
+            firstName: userResult?.firstName,
+            lastName: userResult?.lastName,
+            email: userResult?.email
+        })
+    }
 }
-
-
 export default AuthenticationController
