@@ -6,6 +6,7 @@ import { db } from '../../db'
 import { userTable } from '../../db/schema'
 import {createHmac, randomBytes} from 'node:crypto'
 import {sign} from 'jsonwebtoken'
+import {createUserToken} from './utils/token'
 
 class AuthenticationController {
     public async handelSignup (req: Request,  res: Response) {
@@ -48,17 +49,18 @@ class AuthenticationController {
 
         if(userSelect.password !== hash) return res.status(400).json({message: "Invalid Credentials"}) 
 
-        const jwtSecret = process.env.JWT_SECRET
-        if(!jwtSecret) return res.status(500).json({message: 'JWT secret is not configured on the server'})
+    //     const jwtSecret = process.env.JWT_SECRET
+    //     if(!jwtSecret) return res.status(500).json({message: 'JWT secret is not configured on the server'})
 
-        const token = sign({
-            sub: userSelect.id,
-            email: userSelect.email,
-            firstName: userSelect.firstName,
-            lastName: userSelect.lastName
-        }, jwtSecret, {expiresIn: '15m'})
+    //     const token = sign({
+    //         sub: userSelect.id,
+    //         email: userSelect.email,
+    //         firstName: userSelect.firstName,
+    //         lastName: userSelect.lastName
+    //     }, jwtSecret, {expiresIn: '15m'})
 
-        return res.status(200).json({message: 'user has been signed in', data: {token}})
+    const token = createUserToken({id: userSelect.id})
+    return res.status(200).json({message: 'user has been signed in', data: {token}})
     }
 }
 
